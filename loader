@@ -1,0 +1,26 @@
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
+
+local BASE = 'https://raw.githubusercontent.com/mallu837/jenicakes/main/games/'
+
+local games = {
+    [119271610514030] = 'breakabrainroteggs.lua',
+    [96727061242653]  = 'stealanimeeggs.lua',
+    [90086669327265]  = '+1cutgrassadventure.lua',
+}
+
+local scriptFile = games[game.PlaceId]
+
+if scriptFile then
+    local scriptUrl = BASE .. scriptFile
+    local success, result = pcall(function()
+        return loadstring(game:HttpGet(scriptUrl))()
+    end)
+    
+    if not success then
+        warn("Failed to load script:", result)
+    end
+else
+    warn("No script configured for PlaceId:", game.PlaceId)
+end
