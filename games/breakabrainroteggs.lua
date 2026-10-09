@@ -1,14 +1,23 @@
-local Players    = game:GetService("Players")
-local RunService = game:GetService("RunService")
+-- ==========================================
+-- SERVICES & LOCAL PLAYER
+-- ==========================================
+local Players         = game:GetService("Players")
+local RunService      = game:GetService("RunService")
+local RS              = game:GetService("ReplicatedStorage")
+local TeleportService = game:GetService("TeleportService")
+local HttpService     = game:GetService("HttpService")
 
-local LocalPlayer = Players.LocalPlayer
+local LocalPlayer     = Players.LocalPlayer
+
+-- Clean up any existing hub instances
+if getgenv().JenicakesHub and type(getgenv().JenicakesHub.Unload) == "function" then
+    pcall(function() getgenv().JenicakesHub:Unload() end)
+end
 
 -- ==========================================
--- REMOTE REFS
+-- REMOTE REFERENCES
 -- ==========================================
-
-local RS  = game:GetService("ReplicatedStorage")
-local Svc = RS.Packages.Knit.Services
+local Svc = RS:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services")
 
 local requestRF  = nil
 local vaultRF    = nil
@@ -23,30 +32,14 @@ pcall(function() purchaseRF = Svc.PetEggStockService.RF.PurchasePetEgg       end
 local eggFolder = workspace:WaitForChild("EggRenderModels", 10)
 
 -- ==========================================
--- ASSET IDS
+-- CONFIG & DATA STRUCTURE
 -- ==========================================
-
-local RawAssetId     = "111413665419179"
-local OpenBtnAssetId = "134040538441909"
-
-local function GetAssetImage(id)
-    local cleanId = tostring(id):gsub("%D", "")
-    local ok, res = pcall(function()
-        local obj = game:GetObjects("rbxassetid://" .. cleanId)
-        if obj and #obj > 0 and obj[1]:IsA("Decal") then return obj[1].Texture end
-    end)
-    return (ok and res and res ~= "" and res)
-        or ("rbxthumb://type=Asset&id=" .. cleanId .. "&w=420&h=420")
-end
-
-local LogoId    = GetAssetImage(RawAssetId)
-local OpenBtnId = GetAssetImage(OpenBtnAssetId)
-
--- ==========================================
--- CONFIG
--- ==========================================
-
 local RANGE = 35
+
+local Cfg = {
+    antiAfk    = true,
+    autoRejoin = false,
+}
 
 local BuyEggList = {
     { id = "i1", active = false, name = "Basic Rare (50c)"    },
@@ -54,10 +47,6 @@ local BuyEggList = {
     { id = "i3", active = false, name = "Elite Legend (150c)" },
     { id = "i4", active = false, name = "Super Mythic (250c)" },
 }
-
--- ==========================================
--- STATE
--- ==========================================
 
 local FARM = {
     farmActive    = false,
@@ -73,13 +62,23 @@ local farmConn    = nil
 local walkConn    = nil
 local vaultConn   = nil
 local bypassConn  = nil
+local antiAfkCon  = nil
 local collectTask = nil
 local buyTask     = nil
 
--- ==========================================
--- HELPERS
--- ==========================================
+local Hub = {
+    Version     = "1.0.0",
+    Running     = true,
+    Window      = nil,
+    WindUI      = nil,
+    Connections = {},
+    Settings    = Cfg
+}
+getgenv().JenicakesHub = Hub
 
+-- ==========================================
+-- LOGIC HELPER FUNCTIONS
+-- ==========================================
 local function getHRP()
     local c = LocalPlayer.Character
     return c and c:FindFirstChild("HumanoidRootPart")
@@ -104,10 +103,47 @@ local function getNearestEgg()
     return best
 end
 
--- ==========================================
--- FARM LOGIC
--- ==========================================
+local function setAntiAfk(enabled)
+    if getconnections then
+        for _, c in ipairs(getconnections(LocalPlayer.Idled)) do
+            pcall(function() c:Disable() end)
+            pcall(function() c:Disconnect() end)
+        end
+    end
 
+    if antiAfkCon then
+        antiAfkCon:Disconnect()
+        antiAfkCon = nil
+    end
+
+    if enabled then
+        antiAfkCon = LocalPlayer.Idled:Connect(function()
+            local VirtualUser = game:GetService("VirtualUser")
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.zero)
+        end)
+    end
+end
+
+setAntiAfk(Cfg.antiAfk)
+
+-- Helper to safely set WindUI visual toggles
+local function updateVisualToggle(toggleObj, state)
+    if not toggleObj then return end
+    pcall(function()
+        if type(toggleObj.Set) == "function" then
+            toggleObj:Set(state)
+        elseif type(toggleObj.SetValue) == "function" then
+            toggleObj:SetValue(state)
+        elseif type(toggleObj.Update) == "function" then
+            toggleObj:Update(state)
+        end
+    end)
+end
+
+-- ==========================================
+-- FARMING CONTROLLERS
+-- ==========================================
 local function startFarm()
     if farmConn then farmConn:Disconnect() end
     farmConn = RunService.Heartbeat:Connect(function()
@@ -239,6 +275,7 @@ end
 
 local function stopCollect()
     FARM.collectActive = false
+    if collectTask then task.cancel(collectTask); collectTask = nil end
 end
 
 local function startBuy()
@@ -261,363 +298,467 @@ end
 
 local function stopBuy()
     FARM.buyActive = false
+    if buyTask then task.cancel(buyTask); buyTask = nil end
 end
 
+-- Reset on character death/respawn
 LocalPlayer.CharacterAdded:Connect(function()
+    stopFarm(); stopWalk(); stopVault(); stopBypass(); stopCollect(); stopBuy()
+    task.wait(1)
+    if FARM.farmActive then startFarm() end
+    if FARM.walkActive then startWalk() end
+    if FARM.vaultActive then startVault() end
+    if FARM.bypassActive then startBypass() end
+    if FARM.collectActive then startCollect() end
+    if FARM.buyActive then startBuy() end
+end)
+
+-- Auto Rejoin Event
+LocalPlayer.OnTeleport:Connect(function()
+    if Cfg.autoRejoin then
+        task.wait(2)
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end
+end)
+
+-- ==========================================
+-- WINDUI INTERFACE SETUP
+-- ==========================================
+local windUI = loadstring(game:HttpGet("https://github.com/mallu837/JenicakesUI/releases/latest/download/main.lua"))()
+Hub.WindUI = windUI
+
+local jenicakesWindow = windUI:CreateWindow({
+    Title = "Jenicakes Hub",
+    Icon = "sparkles",
+    Author = "Break a Brainrot Egg",
+    Folder = "JenicakesHub_Config",
+    Size = UDim2.fromOffset(620, 500),
+    Transparent = true,
+    Theme = "Dark",
+    Acrylic = false,
+    Resizable = true,
+})
+Hub.Window = jenicakesWindow
+pcall(function() jenicakesWindow:SetToTheCenter() end)
+
+---------------------------------------------------------
+-- TAB 1: MAIN TAB
+---------------------------------------------------------
+local mainTab = jenicakesWindow:Tab({ Title = "Main", Icon = "home" })
+
+mainTab:Section({ Title = "Farming Automation" })
+
+local toggleFarm = mainTab:Toggle({
+    Title = "Auto Farm",
+    Desc = "Automatically hits nearby eggs within range",
+    Value = FARM.farmActive,
+    Callback = function(val)
+        FARM.farmActive = val
+        if val then startFarm() else stopFarm() end
+    end
+})
+
+local toggleWalk = mainTab:Toggle({
+    Title = "Auto Walk",
+    Desc = "Moves character around eggs to stay within farming range",
+    Value = FARM.walkActive,
+    Callback = function(val)
+        FARM.walkActive = val
+        if val then startWalk() else stopWalk() end
+    end
+})
+
+local toggleVault = mainTab:Toggle({
+    Title = "Hit Egg Vault",
+    Desc = "Interacts with vault eggs in range automatically",
+    Value = FARM.vaultActive,
+    Callback = function(val)
+        FARM.vaultActive = val
+        if val then startVault() else stopVault() end
+    end
+})
+
+local toggleCollect = mainTab:Toggle({
+    Title = "Collect Money",
+    Desc = "Fires platform collection requests",
+    Value = FARM.collectActive,
+    Callback = function(val)
+        FARM.collectActive = val
+        if val then startCollect() else stopCollect() end
+    end
+})
+
+---------------------------------------------------------
+-- TAB 2: SHOP TAB
+---------------------------------------------------------
+local shopTab = jenicakesWindow:Tab({ Title = "Shop", Icon = "shopping-cart" })
+
+shopTab:Section({ Title = "Egg Selection" })
+
+local eggToggles = {}
+for _, egg in ipairs(BuyEggList) do
+    eggToggles[egg.id] = shopTab:Toggle({
+        Title = egg.name,
+        Desc = "Enable purchasing for this egg type",
+        Value = egg.active,
+        Callback = function(val)
+            egg.active = val
+        end
+    })
+end
+
+shopTab:Section({ Title = "Automation" })
+
+local toggleBuy = shopTab:Toggle({
+    Title = "Auto Buy Eggs",
+    Desc = "Automatically purchases selected eggs",
+    Value = FARM.buyActive,
+    Callback = function(val)
+        FARM.buyActive = val
+        if val then startBuy() else stopBuy() end
+    end
+})
+
+---------------------------------------------------------
+-- TAB 3: CONFIG TAB
+---------------------------------------------------------
+local configTab = jenicakesWindow:Tab({ Title = "Configs", Icon = "file-text" })
+
+local configFolder = "JenicakesHub_Configs"
+if makefolder and not isfolder(configFolder) then
+    pcall(makefolder, configFolder)
+end
+
+local configInputName = "My config"
+local selectedConfig = "---"
+local jsonText = ""
+
+local function getSaveData()
+    local eggStates = {}
+    for _, egg in ipairs(BuyEggList) do
+        eggStates[egg.id] = egg.active
+    end
+    return {
+        Farm = FARM,
+        Cfg = Cfg,
+        Eggs = eggStates
+    }
+end
+
+local function applySaveData(data)
+    if not data or type(data) ~= "table" then return end
+    
+    if data.Cfg then
+        Cfg.antiAfk = data.Cfg.antiAfk or false
+        Cfg.autoRejoin = data.Cfg.autoRejoin or false
+        setAntiAfk(Cfg.antiAfk)
+    end
+    
+    if data.Eggs then
+        for _, egg in ipairs(BuyEggList) do
+            if data.Eggs[egg.id] ~= nil then
+                egg.active = data.Eggs[egg.id]
+                updateVisualToggle(eggToggles[egg.id], egg.active)
+            end
+        end
+    end
+
+    if data.Farm then
+        -- Auto Farm
+        if data.Farm.farmActive ~= nil then
+            FARM.farmActive = data.Farm.farmActive
+            updateVisualToggle(toggleFarm, FARM.farmActive)
+            if FARM.farmActive then startFarm() else stopFarm() end
+        end
+        -- Auto Walk
+        if data.Farm.walkActive ~= nil then
+            FARM.walkActive = data.Farm.walkActive
+            updateVisualToggle(toggleWalk, FARM.walkActive)
+            if FARM.walkActive then startWalk() else stopWalk() end
+        end
+        -- Hit Egg Vault
+        if data.Farm.vaultActive ~= nil then
+            FARM.vaultActive = data.Farm.vaultActive
+            updateVisualToggle(toggleVault, FARM.vaultActive)
+            if FARM.vaultActive then startVault() else stopVault() end
+        end
+        -- Collect Money
+        if data.Farm.collectActive ~= nil then
+            FARM.collectActive = data.Farm.collectActive
+            updateVisualToggle(toggleCollect, FARM.collectActive)
+            if FARM.collectActive then startCollect() else stopCollect() end
+        end
+        -- Auto Buy
+        if data.Farm.buyActive ~= nil then
+            FARM.buyActive = data.Farm.buyActive
+            updateVisualToggle(toggleBuy, FARM.buyActive)
+            if FARM.buyActive then startBuy() else stopBuy() end
+        end
+        -- Bypass
+        if data.Farm.bypassActive ~= nil then
+            FARM.bypassActive = data.Farm.bypassActive
+            if FARM.bypassActive then startBypass() else stopBypass() end
+        end
+    end
+end
+
+local function listConfigFiles()
+    local files = { "---" }
+    if listfiles and isfolder(configFolder) then
+        for _, file in ipairs(listfiles(configFolder)) do
+            if file:sub(-5) == ".json" and not file:find("autoload_setting.txt") then
+                local filename = file:gsub("\\", "/"):match("([^/]+)%.json$")
+                if filename then
+                    table.insert(files, filename)
+                end
+            end
+        end
+    end
+    return files
+end
+
+configTab:Input({
+    Title = "Name",
+    Value = "My config",
+    Callback = function(val)
+        configInputName = val ~= "" and val or "My config"
+    end
+})
+
+local dropdown = configTab:Dropdown({
+    Title = "Configs",
+    Values = listConfigFiles(),
+    Value = "---",
+    Callback = function(val)
+        selectedConfig = val
+    end
+})
+
+configTab:Button({
+    Title = "+ Create Config",
+    Callback = function()
+        if writefile then
+            local name = configInputName ~= "" and configInputName or "My config"
+            local path = configFolder .. "/" .. name .. ".json"
+            writefile(path, HttpService:JSONEncode(getSaveData()))
+            dropdown:SetValues(listConfigFiles())
+        end
+    end
+})
+
+configTab:Button({
+    Title = "📂 Load Config",
+    Callback = function()
+        if selectedConfig ~= "---" and isfile then
+            local path = configFolder .. "/" .. selectedConfig .. ".json"
+            if isfile(path) then
+                local raw = readfile(path)
+                local ok, decoded = pcall(function() return HttpService:JSONDecode(raw) end)
+                if ok and decoded then applySaveData(decoded) end
+            end
+        end
+    end
+})
+
+configTab:Button({
+    Title = "💾 Overwrite Config",
+    Callback = function()
+        if selectedConfig ~= "---" and writefile then
+            local path = configFolder .. "/" .. selectedConfig .. ".json"
+            writefile(path, HttpService:JSONEncode(getSaveData()))
+        end
+    end
+})
+
+configTab:Button({
+    Title = "🗑️ Delete Config",
+    Callback = function()
+        if selectedConfig ~= "---" and delfile then
+            local path = configFolder .. "/" .. selectedConfig .. ".json"
+            if isfile(path) then
+                delfile(path)
+                dropdown:SetValues(listConfigFiles())
+                dropdown:SetValue("---")
+            end
+        end
+    end
+})
+
+configTab:Button({
+    Title = "🔄 Refresh Configs",
+    Callback = function()
+        dropdown:SetValues(listConfigFiles())
+    end
+})
+
+local autoloadLabel = configTab:Paragraph({
+    Title = "⭐ Autoload: None",
+    Desc = ""
+})
+
+local function updateAutoloadLabel(name)
+    autoloadLabel:SetTitle("⭐ Autoload: " .. name)
+end
+
+configTab:Button({
+    Title = "⭐ Set Autoload",
+    Callback = function()
+        if selectedConfig ~= "---" and writefile then
+            writefile(configFolder .. "/autoload_setting.txt", selectedConfig)
+            updateAutoloadLabel(selectedConfig)
+        end
+    end
+})
+
+configTab:Button({
+    Title = "🗑️ Clear Autoload",
+    Callback = function()
+        if writefile then
+            writefile(configFolder .. "/autoload_setting.txt", "None")
+            updateAutoloadLabel("None")
+        end
+    end
+})
+
+local jsonInput = configTab:Input({
+    Title = "Config JSON",
+    Value = "Exported JSON appears here",
+    Callback = function(val)
+        jsonText = val
+    end
+})
+
+configTab:Button({
+    Title = "📥 Import JSON",
+    Callback = function()
+        if jsonText ~= "" and jsonText ~= "Exported JSON appears here" then
+            local ok, decoded = pcall(function() return HttpService:JSONDecode(jsonText) end)
+            if ok and decoded then applySaveData(decoded) end
+        end
+    end
+})
+
+configTab:Button({
+    Title = "📤 Export JSON",
+    Callback = function()
+        local str = HttpService:JSONEncode(getSaveData())
+        jsonInput:SetValue(str)
+        jsonText = str
+    end
+})
+
+configTab:Button({
+    Title = "📋 Copy JSON",
+    Callback = function()
+        local str = HttpService:JSONEncode(getSaveData())
+        if setclipboard then
+            setclipboard(str)
+        elseif toclipboard then
+            toclipboard(str)
+        end
+    end
+})
+
+-- Boot Autoload Trigger
+task.spawn(function()
+    task.wait(1.5)
+    local autoPath = configFolder .. "/autoload_setting.txt"
+    if isfile and isfile(autoPath) then
+        local name = readfile(autoPath)
+        if name and name ~= "None" and name ~= "" then
+            updateAutoloadLabel(name)
+            local cfgPath = configFolder .. "/" .. name .. ".json"
+            if isfile(cfgPath) then
+                local raw = readfile(cfgPath)
+                local ok, decoded = pcall(function() return HttpService:JSONDecode(raw) end)
+                if ok and decoded then
+                    applySaveData(decoded)
+                end
+            end
+        end
+    end
+end)
+
+---------------------------------------------------------
+-- TAB 4: MISC TAB
+---------------------------------------------------------
+local miscTab = jenicakesWindow:Tab({ Title = "Misc", Icon = "settings" })
+
+miscTab:Section({ Title = "Bypass & Exploits" })
+
+miscTab:Toggle({
+    Title = "Bypass Zones",
+    Desc = "Removes wall barriers and disables body collision",
+    Value = FARM.bypassActive,
+    Callback = function(val)
+        FARM.bypassActive = val
+        if val then startBypass() else stopBypass() end
+    end
+})
+
+miscTab:Section({ Title = "Performance & Automation" })
+
+miscTab:Toggle({
+    Title = "Anti AFK",
+    Desc = "Prevents client from being kicked for idling",
+    Value = Cfg.antiAfk,
+    Callback = function(val)
+        Cfg.antiAfk = val
+        setAntiAfk(val)
+    end
+})
+
+miscTab:Toggle({
+    Title = "Auto Rejoin",
+    Desc = "Automatically rejoins the server upon disconnection",
+    Value = Cfg.autoRejoin,
+    Callback = function(val)
+        Cfg.autoRejoin = val
+    end
+})
+
+miscTab:Section({ Title = "Community & Support" })
+
+miscTab:Paragraph({
+    Title = "Discord Community",
+    Desc = "Join our Discord server for updates and script feedback!"
+})
+
+miscTab:Button({
+    Title = "Copy Discord Invite",
+    Callback = function()
+        local link = "https://discord.gg/GFZYsspybS"
+        if setclipboard then
+            setclipboard(link)
+        elseif toclipboard then
+            toclipboard(link)
+        end
+    end
+})
+
+---------------------------------------------------------
+-- UNLOAD FUNCTION
+---------------------------------------------------------
+function Hub:Unload()
+    self.Running = false
     FARM.farmActive = false; FARM.walkActive = false
     FARM.vaultActive = false; FARM.bypassActive = false
     FARM.collectActive = false; FARM.buyActive = false
-    FARM.hitCount = 0
+    
     stopFarm(); stopWalk(); stopVault(); stopBypass(); stopCollect(); stopBuy()
-end)
 
--- ==========================================
--- GUI
--- ==========================================
+    if antiAfkCon then
+        antiAfkCon:Disconnect()
+        antiAfkCon = nil
+    end
 
-local targetParent = (gethui and gethui()) or LocalPlayer:WaitForChild("PlayerGui")
+    for _, conn in ipairs(self.Connections) do
+        pcall(function() conn:Disconnect() end)
+    end
+    table.clear(self.Connections)
 
-for _, old in ipairs({ "JenFarmGui" }) do
-    local f = targetParent:FindFirstChild(old); if f then f:Destroy() end
+    if self.Window and type(self.Window.Destroy) == "function" then
+        pcall(function() self.Window:Destroy() end)
+    end
+    getgenv().JenicakesHub = nil
 end
-
-local Theme = {
-    BG        = Color3.fromRGB(20, 12, 28),
-    Card      = Color3.fromRGB(36, 22, 48),
-    Border    = Color3.fromRGB(236, 72, 153),
-    Purple    = Color3.fromRGB(168, 85, 247),
-    Active    = Color3.fromRGB(219, 39, 119),
-    Inactive  = Color3.fromRGB(42, 26, 56),
-    TextOn    = Color3.fromRGB(255, 255, 255),
-    TextOff   = Color3.fromRGB(190, 160, 205),
-    TextMuted = Color3.fromRGB(140, 110, 160),
-    Pink      = Color3.fromRGB(255, 192, 230),
-    Gold      = Color3.fromRGB(255, 210, 100),
-}
-
-local SG = Instance.new("ScreenGui")
-SG.Name           = "JenFarmGui"
-SG.ResetOnSpawn   = false
-SG.IgnoreGuiInset = true
-SG.DisplayOrder   = 9999
-SG.Parent         = targetParent
-
--- ==========================================
--- OPEN BUTTON (minimised state)
--- ==========================================
-
-local openBtn = Instance.new("TextButton", SG)
-openBtn.Size                 = UDim2.new(0, 40, 0, 40)
-openBtn.Position             = UDim2.new(0, 12, 0.5, -20)
-openBtn.BackgroundColor3     = Theme.BG
-openBtn.BackgroundTransparency = 0.2
-openBtn.Text                 = ""
-openBtn.Visible              = false
-openBtn.ZIndex               = 2000
-openBtn.Active               = true
-openBtn.Draggable            = true
-Instance.new("UICorner", openBtn).CornerRadius = UDim.new(1, 0)
-local obs = Instance.new("UIStroke", openBtn)
-obs.Color = Theme.Border; obs.Thickness = 2
-local obImg = Instance.new("ImageLabel", openBtn)
-obImg.Size               = UDim2.new(0, 30, 0, 30)
-obImg.Position           = UDim2.new(0.5, -15, 0.5, -15)
-obImg.BackgroundTransparency = 1
-obImg.Image              = OpenBtnId
-obImg.ScaleType          = Enum.ScaleType.Fit
-obImg.ZIndex             = 2001
-
--- ==========================================
--- MAIN WINDOW
--- ==========================================
-
-local WIN_W    = 200
-local HEADER_H = 52   -- logo + title + subtitle
-local HITBAR_H = 20
-local FOOTER_H = 22
-local SCROLL_H = 260  -- visible scroll area height
-local WIN_H    = HEADER_H + HITBAR_H + SCROLL_H + FOOTER_H
-
-local win = Instance.new("Frame", SG)
-win.Name                   = "MainWin"
-win.Size                   = UDim2.new(0, WIN_W, 0, WIN_H)
-win.Position               = UDim2.new(0, 12, 0.5, -(WIN_H / 2))
-win.BackgroundColor3       = Theme.BG
-win.BackgroundTransparency = 0.15
-win.BorderSizePixel        = 0
-win.Active                 = true
-win.Draggable              = true
-win.ClipsDescendants       = true
-Instance.new("UICorner", win).CornerRadius = UDim.new(0, 10)
-local ws = Instance.new("UIStroke", win)
-ws.Color = Theme.Border; ws.Thickness = 1.6
-
--- ==========================================
--- HEADER
--- ==========================================
-
-local header = Instance.new("Frame", win)
-header.Size                   = UDim2.new(1, 0, 0, HEADER_H)
-header.Position               = UDim2.new(0, 0, 0, 0)
-header.BackgroundColor3       = Theme.Card
-header.BackgroundTransparency = 0.3
-header.BorderSizePixel        = 0
-
--- Logo
-local hLogo = Instance.new("ImageLabel", header)
-hLogo.Size                 = UDim2.new(0, 28, 0, 28)
-hLogo.Position             = UDim2.new(0, 7, 0.5, -14)
-hLogo.BackgroundTransparency = 1
-hLogo.Image                = LogoId
-hLogo.ScaleType            = Enum.ScaleType.Fit
-
--- Title: Break a Brainrot Egg
-local hTitle = Instance.new("TextLabel", header)
-hTitle.Size                = UDim2.new(1, -80, 0, 18)
-hTitle.Position            = UDim2.new(0, 40, 0, 7)
-hTitle.BackgroundTransparency = 1
-hTitle.Text                = "Break a Brainrot Egg"
-hTitle.TextColor3          = Theme.Pink
-hTitle.TextSize            = 11
-hTitle.Font                = Enum.Font.GothamBold
-hTitle.TextXAlignment      = Enum.TextXAlignment.Left
-hTitle.TextTruncate        = Enum.TextTruncate.AtEnd
-
--- Subtitle: JEN FARM
-local hSub = Instance.new("TextLabel", header)
-hSub.Size                  = UDim2.new(1, -80, 0, 14)
-hSub.Position              = UDim2.new(0, 40, 0, 27)
-hSub.BackgroundTransparency = 1
-hSub.Text                  = "JEN FARM"
-hSub.TextColor3            = Theme.TextMuted
-hSub.TextSize              = 9
-hSub.Font                  = Enum.Font.GothamSemibold
-hSub.TextXAlignment        = Enum.TextXAlignment.Left
-
--- Min button
-local minBtn = Instance.new("TextButton", header)
-minBtn.Size             = UDim2.new(0, 18, 0, 18)
-minBtn.Position         = UDim2.new(1, -42, 0.5, -9)
-minBtn.BackgroundColor3 = Color3.fromRGB(55, 35, 75)
-minBtn.Text             = "-"
-minBtn.TextColor3       = Theme.TextOn
-minBtn.TextSize         = 13
-minBtn.Font             = Enum.Font.GothamBold
-minBtn.BorderSizePixel  = 0
-Instance.new("UICorner", minBtn).CornerRadius = UDim.new(0, 4)
-
--- Close button
-local closeBtn = Instance.new("TextButton", header)
-closeBtn.Size             = UDim2.new(0, 18, 0, 18)
-closeBtn.Position         = UDim2.new(1, -21, 0.5, -9)
-closeBtn.BackgroundColor3 = Color3.fromRGB(225, 29, 72)
-closeBtn.Text             = "✕"
-closeBtn.TextColor3       = Color3.fromRGB(255, 255, 255)
-closeBtn.TextSize         = 9
-closeBtn.Font             = Enum.Font.GothamBold
-closeBtn.BorderSizePixel  = 0
-Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(0, 4)
-
--- ==========================================
--- HIT COUNTER BAR
--- ==========================================
-
-local hitBar = Instance.new("Frame", win)
-hitBar.Size                   = UDim2.new(1, 0, 0, HITBAR_H)
-hitBar.Position               = UDim2.new(0, 0, 0, HEADER_H)
-hitBar.BackgroundColor3       = Color3.fromRGB(30, 16, 40)
-hitBar.BackgroundTransparency = 0.3
-hitBar.BorderSizePixel        = 0
-
-local hitLabel = Instance.new("TextLabel", hitBar)
-hitLabel.Size                 = UDim2.fromScale(1, 1)
-hitLabel.BackgroundTransparency = 1
-hitLabel.Text                 = "Hits this session: 0"
-hitLabel.TextColor3           = Theme.Gold
-hitLabel.TextSize             = 10
-hitLabel.Font                 = Enum.Font.GothamBold
-
-RunService.Heartbeat:Connect(function()
-    hitLabel.Text = "Hits this session: " .. FARM.hitCount
-end)
-
--- ==========================================
--- SCROLL FRAME
--- ==========================================
-
-local scrollTop = HEADER_H + HITBAR_H
-
-local scroll = Instance.new("ScrollingFrame", win)
-scroll.Size                   = UDim2.new(1, 0, 0, SCROLL_H)
-scroll.Position               = UDim2.new(0, 0, 0, scrollTop)
-scroll.BackgroundTransparency = 1
-scroll.BorderSizePixel        = 0
-scroll.ScrollBarThickness     = 3
-scroll.ScrollBarImageColor3   = Theme.Border
-scroll.CanvasSize             = UDim2.new(0, 0, 0, 0)
-scroll.AutomaticCanvasSize    = Enum.AutomaticSize.Y
-scroll.ScrollingDirection     = Enum.ScrollingDirection.Y
-scroll.ClipsDescendants       = true
-
-local sLayout = Instance.new("UIListLayout", scroll)
-sLayout.SortOrder = Enum.SortOrder.LayoutOrder
-sLayout.Padding   = UDim.new(0, 4)
-
-local sPad = Instance.new("UIPadding", scroll)
-sPad.PaddingTop    = UDim.new(0, 6)
-sPad.PaddingLeft   = UDim.new(0, 6)
-sPad.PaddingRight  = UDim.new(0, 9)
-sPad.PaddingBottom = UDim.new(0, 6)
-
--- ==========================================
--- FOOTER — made by jenicakes
--- ==========================================
-
-local footer = Instance.new("Frame", win)
-footer.Size                   = UDim2.new(1, 0, 0, FOOTER_H)
-footer.Position               = UDim2.new(0, 0, 1, -FOOTER_H)
-footer.BackgroundColor3       = Theme.Card
-footer.BackgroundTransparency = 0.4
-footer.BorderSizePixel        = 0
-
-local footerDivider = Instance.new("Frame", footer)
-footerDivider.Size            = UDim2.new(1, 0, 0, 1)
-footerDivider.Position        = UDim2.new(0, 0, 0, 0)
-footerDivider.BackgroundColor3 = Theme.Border
-footerDivider.BackgroundTransparency = 0.6
-footerDivider.BorderSizePixel = 0
-
-local footerLabel = Instance.new("TextLabel", footer)
-footerLabel.Size              = UDim2.new(1, 0, 1, -1)
-footerLabel.Position          = UDim2.new(0, 0, 0, 1)
-footerLabel.BackgroundTransparency = 1
-footerLabel.Text              = "made by jenicakes"
-footerLabel.TextColor3        = Theme.TextMuted
-footerLabel.TextSize          = 9
-footerLabel.Font              = Enum.Font.GothamSemibold
-footerLabel.TextXAlignment    = Enum.TextXAlignment.Center
-
--- ==========================================
--- TOGGLE BUILDER
--- ==========================================
-
-local function makeToggle(order, labelOff, labelOn, onEnable, onDisable)
-    local btn = Instance.new("TextButton", scroll)
-    btn.Size                   = UDim2.new(1, 0, 0, 28)
-    btn.LayoutOrder            = order
-    btn.BackgroundColor3       = Theme.Inactive
-    btn.BackgroundTransparency = 0.2
-    btn.Text                   = labelOff
-    btn.TextColor3             = Theme.TextOff
-    btn.TextSize               = 10
-    btn.Font                   = Enum.Font.GothamSemibold
-    btn.BorderSizePixel        = 0
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 6)
-    local s = Instance.new("UIStroke", btn)
-    s.Color       = Theme.Purple
-    s.Thickness   = 1
-    s.Transparency = 0.6
-
-    local state = false
-    btn.MouseButton1Click:Connect(function()
-        state = not state
-        if state then
-            btn.Text             = labelOn
-            btn.BackgroundColor3 = Theme.Active
-            btn.TextColor3       = Theme.TextOn
-            s.Color              = Theme.Border
-            s.Transparency       = 0.2
-            onEnable()
-        else
-            btn.Text             = labelOff
-            btn.BackgroundColor3 = Theme.Inactive
-            btn.TextColor3       = Theme.TextOff
-            s.Color              = Theme.Purple
-            s.Transparency       = 0.6
-            onDisable()
-        end
-    end)
-    return btn
-end
-
-local function makeSep(order, text)
-    local lbl = Instance.new("TextLabel", scroll)
-    lbl.Size                   = UDim2.new(1, 0, 0, 14)
-    lbl.LayoutOrder            = order
-    lbl.BackgroundTransparency = 1
-    lbl.Text                   = text
-    lbl.TextColor3             = Theme.TextMuted
-    lbl.TextSize               = 9
-    lbl.Font                   = Enum.Font.GothamSemibold
-    lbl.TextXAlignment         = Enum.TextXAlignment.Center
-end
-
--- ==========================================
--- FEATURE TOGGLES
--- ==========================================
-
-makeSep(0, "── Key Vault ──")
-
-makeToggle(1, "Auto Farm: OFF", "Auto Farm: ON",
-    function() FARM.farmActive = true;    startFarm()    end,
-    function() FARM.farmActive = false;   stopFarm()     end)
-
-makeToggle(2, "Auto Walk: OFF", "Auto Walk: ON",
-    function() FARM.walkActive = true;    startWalk()    end,
-    function() FARM.walkActive = false;   stopWalk()     end)
-
-makeToggle(3, "Hit Egg Vault: OFF", "Hit Egg Vault: ON",
-    function() FARM.vaultActive = true;   startVault()   end,
-    function() FARM.vaultActive = false;  stopVault()    end)
-
-makeToggle(4, "Bypass Zones: OFF", "Bypass Zones: ON",
-    function() FARM.bypassActive = true;  startBypass()  end,
-    function() FARM.bypassActive = false; stopBypass()   end)
-
-makeToggle(5, "Collect Money: OFF", "Collect Money: ON",
-    function() FARM.collectActive = true;  startCollect() end,
-    function() FARM.collectActive = false; stopCollect()  end)
-
-makeSep(6, "── Buy Eggs ──")
-
-for i, egg in ipairs(BuyEggList) do
-    local eBtn = Instance.new("TextButton", scroll)
-    eBtn.Size                   = UDim2.new(1, 0, 0, 24)
-    eBtn.LayoutOrder            = 6 + i
-    eBtn.BackgroundColor3       = Theme.Inactive
-    eBtn.BackgroundTransparency = 0.2
-    eBtn.Text                   = "[ ] " .. egg.name
-    eBtn.TextColor3             = Theme.TextOff
-    eBtn.TextSize               = 9
-    eBtn.Font                   = Enum.Font.GothamSemibold
-    eBtn.BorderSizePixel        = 0
-    Instance.new("UICorner", eBtn).CornerRadius = UDim.new(0, 6)
-    eBtn.MouseButton1Click:Connect(function()
-        egg.active            = not egg.active
-        eBtn.Text             = egg.active and ("[✓] " .. egg.name) or ("[ ] " .. egg.name)
-        eBtn.TextColor3       = egg.active and Theme.TextOn or Theme.TextOff
-        eBtn.BackgroundColor3 = egg.active and Color3.fromRGB(30, 20, 40) or Theme.Inactive
-    end)
-end
-
-makeToggle(11, "Auto Buy: OFF", "Auto Buy: ON",
-    function() FARM.buyActive = true;  startBuy()  end,
-    function() FARM.buyActive = false; stopBuy()   end)
-
--- ==========================================
--- MIN / CLOSE / OPEN
--- ==========================================
-
-minBtn.MouseButton1Click:Connect(function()
-    win.Visible     = false
-    openBtn.Visible = true
-end)
-
-openBtn.MouseButton1Click:Connect(function()
-    openBtn.Visible = false
-    win.Visible     = true
-end)
-
-closeBtn.MouseButton1Click:Connect(function()
-    SG:Destroy()
-end)
