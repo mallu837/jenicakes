@@ -1,4 +1,4 @@
-if not game:IsLoaded() then
+If not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
@@ -8,6 +8,7 @@ local games = {
     [119271610514030] = 'breakabrainroteggs.lua',
     [96727061242653]  = 'stealanimeeggs.lua',
     [90086669327265]  = '+1cutgrassadventure.lua',
+    [120475074479690] = 'stealfromtherich.lua',
 }
 
 local scriptFile = games[game.PlaceId]
