@@ -13,5 +13,5 @@ if success and response then
         warn("[Jenicakes Loader] Syntax error: " .. tostring(err))
     end
 else
-    warn("[Jenicakes Loader] Failed to connect to server.")
+    warn("[Jenicakes Loader] HttpGet failed: " .. tostring(response))
 end
