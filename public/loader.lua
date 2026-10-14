@@ -1,8 +1,9 @@
 local PlaceId = game.PlaceId
+-- Added headers and fallback handling for mobile executors
 local ServerURL = "https://jenicakes.vercel.app/api/script?placeid=" .. tostring(PlaceId)
 
 local success, response = pcall(function()
-    return game:HttpGet(ServerURL)
+    return game:HttpGet(ServerURL, true)
 end)
 
 if success and response then
