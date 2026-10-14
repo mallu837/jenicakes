@@ -1,0 +1,16 @@
+{
+  "routes": [
+    {
+      "src": "/api/loader",
+      "dest": "/pages/api/loader.js"
+    },
+    {
+      "src": "/api/script",
+      "dest": "/pages/api/script.js"
+    },
+    {
+      "src": "/loader.lua",
+      "dest": "/pages/api/loader.js"
+    }
+  ]
+}
