@@ -3,16 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jenicakes Hub | Roblox Script Hub</title>
+    <title>Jenicakes | Roblox Script Hub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #2a0845 0%, #12002b 100%);
-            --card-bg: rgba(35, 10, 55, 0.85);
+            --bg-color: #0b0512;
+            --card-bg: rgba(22, 11, 36, 0.75);
+            --card-border: rgba(168, 85, 247, 0.25);
             --pink-accent: #ff007f;
-            --pink-glow: #ff55bb;
-            --purple-border: #6a0da8;
+            --pink-glow: rgba(255, 0, 127, 0.4);
+            --purple-accent: #a855f7;
             --text-main: #ffffff;
-            --text-sub: #d8b4fe;
+            --text-muted: #b8a2ce;
         }
 
         * {
@@ -23,63 +25,178 @@
         }
 
         body {
-            background: #12002b;
-            background-image: var(--bg-gradient);
+            background-color: var(--bg-color);
+            background-image: 
+                linear-gradient(to right, rgba(168, 85, 247, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
+            background-size: 32px 32px;
             color: var(--text-main);
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 50px;
         }
 
-        .container {
-            max-width: 550px;
+        /* Navbar */
+        nav {
             width: 100%;
-            background: var(--card-bg);
-            border: 2px solid var(--purple-border);
-            border-radius: 18px;
-            padding: 28px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 0 25px rgba(255, 0, 127, 0.3);
+            max-width: 1000px;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            backdrop-filter: blur(8px);
         }
 
+        .nav-logo {
+            font-weight: 900;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            color: var(--pink-accent);
+            text-shadow: 0 0 10px var(--pink-glow);
+            text-transform: uppercase;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            border-color: var(--pink-accent);
+            box-shadow: 0 0 10px var(--pink-glow);
+        }
+
+        /* Container */
+        .container {
+            max-width: 650px;
+            width: 90%;
+            margin-top: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* Top Pill Badge */
+        .pill-badge {
+            background: rgba(255, 0, 127, 0.1);
+            border: 1px solid var(--pink-accent);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        /* Hero Header */
         header {
             text-align: center;
-            margin-bottom: 24px;
         }
 
         header h1 {
-            font-size: 2.3rem;
-            color: var(--pink-accent);
-            text-shadow: 0 0 12px var(--pink-glow);
-            margin-bottom: 6px;
-            font-weight: 800;
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: 3px;
+            color: var(--text-main);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            text-shadow: 0 0 20px var(--pink-glow);
         }
 
         header p {
-            color: var(--text-sub);
+            color: var(--text-muted);
             font-size: 0.95rem;
         }
 
-        .section {
-            margin-bottom: 22px;
+        /* Action Grid (Script, Games, Discord only) */
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        .action-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 14px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 700;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .action-card:hover {
+            border-color: var(--pink-accent);
+            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--pink-glow);
+        }
+
+        /* Uptime Counter Banner */
+        .uptime-banner {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 30px;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .uptime-banner span {
+            color: var(--pink-accent);
+        }
+
+        /* Script Section Card */
+        .section-card {
+            width: 100%;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
         }
 
         .section-title {
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            color: var(--text-sub);
-            margin-bottom: 10px;
-            font-weight: 600;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 700;
         }
 
         .code-container {
             display: flex;
             align-items: center;
-            background: rgba(15, 0, 30, 0.85);
-            border: 1px solid var(--purple-border);
+            background: #07030a;
+            border: 1px solid var(--card-border);
             border-radius: 10px;
             padding: 10px 14px;
             gap: 12px;
@@ -92,14 +209,14 @@
             white-space: nowrap;
             overflow-x: auto;
             flex-grow: 1;
-            padding-bottom: 4px;
+            padding-bottom: 2px;
         }
 
         .code-box::-webkit-scrollbar {
             height: 4px;
         }
         .code-box::-webkit-scrollbar-thumb {
-            background: var(--purple-border);
+            background: var(--purple-accent);
             border-radius: 4px;
         }
 
@@ -108,43 +225,133 @@
             color: #fff;
             border: none;
             border-radius: 8px;
-            padding: 8px 14px;
+            padding: 8px 16px;
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
             box-shadow: 0 0 10px var(--pink-accent);
             transition: all 0.2s;
-            white-space: nowrap;
             flex-shrink: 0;
         }
 
         .copy-btn:hover {
             background: #e0006c;
-            box-shadow: 0 0 15px var(--pink-glow);
         }
 
-        .game-list {
-            list-style: none;
+        /* Feature Pills */
+        .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
+            width: 100%;
         }
 
-        .game-item {
-            background: rgba(15, 0, 30, 0.7);
-            border: 1px solid var(--purple-border);
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 0.9rem;
+        .feature-item {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 10px;
+            font-size: 0.75rem;
+            text-align: center;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Game Cards List */
+        .game-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            width: 100%;
+        }
+
+        .game-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 4px 10px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .game-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-top: 24px;
+        }
+
+        .game-actions {
+            display: flex;
             gap: 10px;
+        }
+
+        .btn-game-action {
+            flex: 1;
+            background: rgba(168, 85, 247, 0.1);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-game-action:hover {
+            border-color: var(--pink-accent);
+            background: var(--pink-accent);
+        }
+
+        /* Discord Section */
+        .discord-card {
+            width: 100%;
+            text-align: center;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 24px;
+        }
+
+        .discord-card h2 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            margin-bottom: 12px;
+            color: var(--text-main);
         }
 
         .btn-discord {
-            display: flex;
-            justify-content: center;
+            display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 10px;
             width: 100%;
             background: #5865F2;
@@ -152,10 +359,9 @@
             text-decoration: none;
             padding: 14px;
             border-radius: 12px;
-            font-weight: 700;
+            font-weight: 800;
             font-size: 1rem;
-            text-align: center;
-            box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+            box-shadow: 0 0 15px rgba(88, 101, 242, 0.4);
             transition: background 0.2s;
         }
 
@@ -166,50 +372,113 @@
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <h1>Jenicakes Hub</h1>
-        <p>Roblox Script Hub</p>
-    </header>
+    <!-- Top Navbar -->
+    <nav>
+        <div class="nav-logo"><i class="fa-solid fa-gem"></i> JENICAKES</div>
+        <div class="nav-actions">
+            <a href="https://discord.gg/GFZYsspybS" target="_blank" class="nav-btn"><i class="fa-brands fa-discord"></i> Discord</a>
+        </div>
+    </nav>
 
-    <div class="section">
-        <div class="section-title">Execution Loader</div>
-        <div class="code-container">
-            <div class="code-box">
-                <span id="loadstring">loadstring(game:HttpGet("https://jenicakes.vercel.app/api/loader"))()</span>
+    <div class="container">
+        <!-- Pill Tag -->
+        <div class="pill-badge">Enjoy your favorite game like never before</div>
+
+        <!-- Hero Title -->
+        <header>
+            <h1>JENICAKES</h1>
+            <p>Welcome to Jenicakes. To get started, copy the execution loader below or check supported games.</p>
+        </header>
+
+        <!-- Quick Action Grid (Script, Games, Discord) -->
+        <div class="action-grid">
+            <a href="#loader-section" class="action-card"><i class="fa-solid fa-code"></i> Script</a>
+            <a href="#games-section" class="action-card"><i class="fa-solid fa-gamepad"></i> Games</a>
+            <a href="https://discord.gg/GFZYsspybS" target="_blank" class="action-card"><i class="fa-brands fa-discord"></i> Discord</a>
+        </div>
+
+        <!-- Uptime Counter -->
+        <div class="uptime-banner">
+            STATUS: <span>99.9% ONLINE & FUNCTIONAL</span>
+        </div>
+
+        <!-- Execution Loader Section -->
+        <div class="section-card" id="loader-section">
+            <div class="section-title"><i class="fa-solid fa-terminal"></i> Execution Loader</div>
+            <div class="code-container">
+                <div class="code-box">
+                    <span id="loadstring">loadstring(game:HttpGet("https://jenicakes.vercel.app/api/loader"))()</span>
+                </div>
+                <button class="copy-btn" onclick="copyScript()" id="copyBtn">Copy</button>
             </div>
-            <button class="copy-btn" onclick="copyScript()" id="copyBtn">Copy</button>
+        </div>
+
+        <!-- Feature Pills -->
+        <div class="features-grid">
+            <div class="feature-item"><i class="fa-solid fa-shield-halved"></i> Reliable</div>
+            <div class="feature-item"><i class="fa-solid fa-bolt"></i> Fast Exec</div>
+            <div class="feature-item"><i class="fa-solid fa-circle-check"></i> Undetected</div>
+        </div>
+
+        <!-- Supported Games Section -->
+        <div style="width: 100%; text-align: center; margin-top: 10px;" id="games-section">
+            <h2 style="font-size: 1.8rem; font-weight: 900; letter-spacing: 2px;">SUPPORTED GAMES</h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">All supported games for you to enjoy</p>
+        </div>
+
+        <div class="game-list">
+            <div class="game-card">
+                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                <div class="game-title">🥚 Break a Brainrot Egg</div>
+                <div class="game-actions">
+                    <button class="btn-game-action" onclick="copyScript()"><i class="fa-solid fa-code"></i> Get Script</button>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                <div class="game-title">🥚 Steal Anime Eggs</div>
+                <div class="game-actions">
+                    <button class="btn-game-action" onclick="copyScript()"><i class="fa-solid fa-code"></i> Get Script</button>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                <div class="game-title">🌱 +1 Cut Grass Adventure</div>
+                <div class="game-actions">
+                    <button class="btn-game-action" onclick="copyScript()"><i class="fa-solid fa-code"></i> Get Script</button>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                <div class="game-title">💰 Steal From The Rich</div>
+                <div class="game-actions">
+                    <button class="btn-game-action" onclick="copyScript()"><i class="fa-solid fa-code"></i> Get Script</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Discord Banner -->
+        <div class="discord-card">
+            <h2>NEED HELP? JOIN DISCORD</h2>
+            <a href="https://discord.gg/GFZYsspybS" target="_blank" class="btn-discord">
+                <i class="fa-brands fa-discord"></i> Discord Server
+            </a>
         </div>
     </div>
 
-    <div class="section">
-        <div class="section-title">Supported Games</div>
-        <ul class="game-list">
-            <li class="game-item">🥚 Break a Brainrot Egg</li>
-            <li class="game-item">🥚 Steal Anime Eggs</li>
-            <li class="game-item">🌱 +1 Cut Grass Adventure</li>
-            <li class="game-item">💰 Steal From The Rich</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <a href="https://discord.gg/GFZYsspybS" target="_blank" class="btn-discord">
-            Join Official Discord
-        </a>
-    </div>
-</div>
-
-<script>
-    function copyScript() {
-        const text = document.getElementById("loadstring").innerText;
-        navigator.clipboard.writeText(text);
-        const btn = document.getElementById("copyBtn");
-        btn.innerText = "Copied!";
-        setTimeout(() => {
-            btn.innerText = "Copy";
-        }, 2000);
-    }
-</script>
-
+    <script>
+        function copyScript() {
+            const text = document.getElementById("loadstring").innerText;
+            navigator.clipboard.writeText(text);
+            const btn = document.getElementById("copyBtn");
+            btn.innerText = "Copied!";
+            setTimeout(() => {
+                btn.innerText = "Copy";
+            }, 2000);
+        }
+    </script>
 </body>
 </html>
