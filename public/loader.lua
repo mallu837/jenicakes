@@ -15,4 +15,3 @@ if success and response then
 else
     warn("[Jenicakes Loader] Failed to connect to server.")
 end
-
