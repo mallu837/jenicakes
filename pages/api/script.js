@@ -1,9 +1,12 @@
-export default function handler(req, res) {
-    res.setHeader('Content-Type', 'text/plain');
+export default async function handler(req, res) {
+    // Enable CORS so Roblox Executors don't block the request
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
 
-    const placeId = req.query.placeid;
+    // Get placeid from URL query string
+    const placeId = String(req.query.placeid || "").trim();
 
-    // Map your Place IDs directly to the file names in your scripts/ folder
+    // Mapping Place IDs to your Lua script files in scripts/
     const files = {
         "119271610514030": "breakabrainrotegg.lua",
         "96727061242653": "stealanimeeggs.lua",
@@ -14,12 +17,20 @@ export default function handler(req, res) {
     const fileName = files[placeId];
 
     if (!fileName) {
-        return res.status(200).send('warn("[Jenicakes Hub] This game is not supported!")');
+        return res.status(200).send(`warn("[Jenicakes Hub] Game not supported! Place ID: ${placeId}")`);
     }
 
-    // Fetches the exact Lua file from your GitHub scripts folder
-    return fetch(`https://raw.githubusercontent.com/mallu837/jenicakes/main/scripts/${fileName}`)
-        .then(response => response.text())
-        .then(scriptText => res.status(200).send(scriptText))
-        .catch(() => res.status(500).send('warn("[Jenicakes Hub] Failed to load script file.")'));
+    try {
+        const rawUrl = `https://raw.githubusercontent.com/mallu837/jenicakes/main/scripts/${fileName}`;
+        const response = await fetch(rawUrl);
+        
+        if (!response.ok) {
+            return res.status(200).send(`warn("[Jenicakes Hub] Could not find script file: ${fileName}")`);
+        }
+
+        const scriptText = await response.text();
+        return res.status(200).send(scriptText);
+    } catch (err) {
+        return res.status(200).send(`warn("[Jenicakes Hub] Error: ${err.message}")`);
+    }
 }
