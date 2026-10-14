@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jenicakes Hub | Universal Script</title>
+    <title>Jenicakes Hub | Roblox Script Hub</title>
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #2a0845 0%, #12002b 100%);
@@ -75,19 +75,32 @@
             font-weight: 600;
         }
 
-        .code-box {
+        .code-container {
+            display: flex;
+            align-items: center;
             background: rgba(15, 0, 30, 0.85);
             border: 1px solid var(--purple-border);
             border-radius: 10px;
-            padding: 12px 14px;
+            padding: 10px 14px;
+            gap: 12px;
+        }
+
+        .code-box {
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.85rem;
-            word-break: break-all;
             color: #ff99dd;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
+            white-space: nowrap;
+            overflow-x: auto;
+            flex-grow: 1;
+            padding-bottom: 4px;
+        }
+
+        .code-box::-webkit-scrollbar {
+            height: 4px;
+        }
+        .code-box::-webkit-scrollbar-thumb {
+            background: var(--purple-border);
+            border-radius: 4px;
         }
 
         .copy-btn {
@@ -102,6 +115,7 @@
             box-shadow: 0 0 10px var(--pink-accent);
             transition: all 0.2s;
             white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .copy-btn:hover {
@@ -160,8 +174,10 @@
 
     <div class="section">
         <div class="section-title">Execution Loader</div>
-        <div class="code-box">
-            <span id="loadstring">loadstring(game:HttpGet("https://jenicakes.vercel.app/api/loader"))()</span>
+        <div class="code-container">
+            <div class="code-box">
+                <span id="loadstring">loadstring(game:HttpGet("https://jenicakes.vercel.app/api/loader"))()</span>
+            </div>
             <button class="copy-btn" onclick="copyScript()" id="copyBtn">Copy</button>
         </div>
     </div>
