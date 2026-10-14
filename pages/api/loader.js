@@ -1,7 +1,8 @@
 export default function handler(req, res) {
-    res.setHeader('Content-Type', 'text/plain');
+    // Send standard plain text response
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     
-    const loaderScript = `
+    const loaderCode = `
 local PlaceId = game.PlaceId
 local ServerURL = "https://jenicakes.vercel.app/api/script?placeid=" .. tostring(PlaceId)
 
@@ -17,9 +18,9 @@ if success and response then
         warn("[Jenicakes Loader] Syntax error: " .. tostring(err))
     end
 else
-    warn("[Jenicakes Loader] HttpGet failed: " .. tostring(response))
+    warn("[Jenicakes Loader] Connection error: " .. tostring(response))
 end
-    `;
+    `.trim();
 
-    return res.status(200).send(loaderScript.trim());
+    return res.status(200).send(loaderCode);
 }
