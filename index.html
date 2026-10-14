@@ -6,13 +6,13 @@
     <title>Jenicakes Hub | Universal Script</title>
     <style>
         :root {
-            --bg-color: #0b0e14;
-            --card-bg: #151a21;
-            --accent: #a855f7;
-            --accent-hover: #9333ea;
-            --text-main: #f3f4f6;
-            --text-sub: #9ca3af;
-            --border: #2a323d;
+            --bg-gradient: linear-gradient(135deg, #2a0845 0%, #12002b 100%);
+            --card-bg: rgba(35, 10, 55, 0.75);
+            --pink-accent: #ff007f;
+            --pink-glow: #ff55bb;
+            --purple-border: #6a0da8;
+            --text-main: #ffffff;
+            --text-sub: #d8b4fe;
         }
 
         * {
@@ -23,7 +23,8 @@
         }
 
         body {
-            background-color: var(--bg-color);
+            background: #12002b;
+            background-image: var(--bg-gradient);
             color: var(--text-main);
             display: flex;
             justify-content: center;
@@ -36,10 +37,11 @@
             max-width: 550px;
             width: 100%;
             background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
+            border: 2px solid var(--purple-border);
+            border-radius: 18px;
             padding: 28px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(255, 0, 127, 0.25);
         }
 
         header {
@@ -48,8 +50,9 @@
         }
 
         header h1 {
-            font-size: 2.2rem;
-            color: var(--accent);
+            font-size: 2.3rem;
+            color: var(--pink-accent);
+            text-shadow: 0 0 12px var(--pink-glow);
             margin-bottom: 6px;
             font-weight: 800;
         }
@@ -73,14 +76,14 @@
         }
 
         .code-box {
-            background: #080b0e;
-            border: 1px solid var(--border);
+            background: rgba(15, 0, 30, 0.8);
+            border: 1px solid var(--purple-border);
             border-radius: 10px;
             padding: 12px 14px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 0.85rem;
             word-break: break-all;
-            color: #38bdf8;
+            color: #ff99dd;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -88,7 +91,7 @@
         }
 
         .copy-btn {
-            background: var(--accent);
+            background: var(--pink-accent);
             color: #fff;
             border: none;
             border-radius: 8px;
@@ -96,12 +99,14 @@
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
-            transition: background 0.2s;
+            box-shadow: 0 0 10px var(--pink-accent);
+            transition: all 0.2s;
             white-space: nowrap;
         }
 
         .copy-btn:hover {
-            background: var(--accent-hover);
+            background: #e0006c;
+            box-shadow: 0 0 15px var(--pink-glow);
         }
 
         .game-list {
@@ -112,8 +117,8 @@
         }
 
         .game-item {
-            background: #080b0e;
-            border: 1px solid var(--border);
+            background: rgba(15, 0, 30, 0.7);
+            border: 1px solid var(--purple-border);
             padding: 12px 14px;
             border-radius: 10px;
             font-size: 0.9rem;
@@ -132,10 +137,11 @@
             color: #fff;
             text-decoration: none;
             padding: 14px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 1rem;
             text-align: center;
+            box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
             transition: background 0.2s;
         }
 
@@ -152,7 +158,6 @@
         <p>Universal Roblox Script Hub</p>
     </header>
 
-    <!-- Script Loadstring -->
     <div class="section">
         <div class="section-title">Execution Loader</div>
         <div class="code-box">
@@ -161,7 +166,6 @@
         </div>
     </div>
 
-    <!-- Supported Games -->
     <div class="section">
         <div class="section-title">Supported Games</div>
         <ul class="game-list">
@@ -172,7 +176,6 @@
         </ul>
     </div>
 
-    <!-- Discord Link -->
     <div class="section">
         <a href="https://discord.gg/GFZYsspybS" target="_blank" class="btn-discord">
             Join Official Discord
