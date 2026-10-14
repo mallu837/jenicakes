@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jenicakes | Roblox Script Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
             --bg-color: #0b0512;
@@ -26,10 +27,6 @@
 
         body {
             background-color: var(--bg-color);
-            background-image: 
-                linear-gradient(to right, rgba(168, 85, 247, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(168, 85, 247, 0.05) 1px, transparent 1px);
-            background-size: 32px 32px;
             color: var(--text-main);
             min-height: 100vh;
             display: flex;
@@ -40,9 +37,9 @@
             overflow-x: hidden;
         }
 
-        /* Live Background Glowing Orbs Effect */
-        .background-effects {
-            position: absolute;
+        /* Live Background Fog Effect */
+        .fog-container {
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
@@ -50,49 +47,59 @@
             overflow: hidden;
             z-index: -1;
             pointer-events: none;
+            background: linear-gradient(135deg, #1b0335 0%, #0b0512 100%);
         }
 
-        .orb {
+        .smoke-cloud {
             position: absolute;
             border-radius: 50%;
-            filter: blur(80px);
+            filter: blur(90px);
             opacity: 0.35;
-            animation: floatOrb 10s infinite alternate ease-in-out;
+            animation: driftFog 15s infinite alternate ease-in-out;
         }
 
-        .orb-1 {
-            width: 300px;
-            height: 300px;
+        .cloud-1 {
+            width: 450px;
+            height: 450px;
             background: #ff007f;
-            top: 10%;
-            left: 15%;
-            animation-duration: 8s;
-        }
-
-        .orb-2 {
-            width: 350px;
-            height: 350px;
-            background: #8b5cf6;
-            top: 50%;
-            right: 10%;
+            top: -10%;
+            left: -10%;
             animation-duration: 12s;
         }
 
-        .orb-3 {
-            width: 250px;
-            height: 250px;
-            background: #ec4899;
-            bottom: 10%;
-            left: 30%;
-            animation-duration: 10s;
+        .cloud-2 {
+            width: 500px;
+            height: 500px;
+            background: #8b5cf6;
+            bottom: -20%;
+            right: -10%;
+            animation-duration: 18s;
         }
 
-        @keyframes floatOrb {
+        .cloud-3 {
+            width: 350px;
+            height: 350px;
+            background: #ec4899;
+            top: 40%;
+            left: 30%;
+            animation-duration: 14s;
+        }
+
+        .cloud-4 {
+            width: 400px;
+            height: 400px;
+            background: #6a0da8;
+            top: 10%;
+            right: 20%;
+            animation-duration: 16s;
+        }
+
+        @keyframes driftFog {
             0% {
                 transform: translateY(0px) translateX(0px) scale(1);
             }
             100% {
-                transform: translateY(-40px) translateX(30px) scale(1.1);
+                transform: translateY(-50px) translateX(40px) scale(1.15);
             }
         }
 
@@ -403,11 +410,12 @@
 </head>
 <body>
 
-    <!-- Live Animated Glowing Background Orbs -->
-    <div class="background-effects">
-        <div class="orb orb-1"></div>
-        <div class="orb orb-2"></div>
-        <div class="orb orb-3"></div>
+    <!-- Live Animated Background Fog / Smoke Effect -->
+    <div class="fog-container">
+        <div class="smoke-cloud cloud-1"></div>
+        <div class="smoke-cloud cloud-2"></div>
+        <div class="smoke-cloud cloud-3"></div>
+        <div class="smoke-cloud cloud-4"></div>
     </div>
 
     <!-- Top Navbar -->
@@ -496,6 +504,8 @@
     </div>
 
     <script>
+        lucide.createIcons();
+        
         function copyScript() {
             const text = document.getElementById("loadstring").innerText;
             navigator.clipboard.writeText(text);
