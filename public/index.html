@@ -8,8 +8,8 @@
     <style>
         :root {
             --bg-color: #0b0512;
-            --card-bg: rgba(22, 11, 36, 0.75);
-            --card-border: rgba(168, 85, 247, 0.25);
+            --card-bg: rgba(22, 11, 36, 0.85);
+            --card-border: rgba(168, 85, 247, 0.3);
             --pink-accent: #ff007f;
             --pink-glow: rgba(255, 0, 127, 0.4);
             --purple-accent: #a855f7;
@@ -35,8 +35,40 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding-top: 80px; /* Space for sticky nav */
+            padding-top: 80px;
             padding-bottom: 50px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Live Background Fog Effect */
+        .fog-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+            background: linear-gradient(135deg, #1b0335 0%, #0b0512 100%);
+        }
+
+        .smoke-cloud {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.35;
+            animation: driftFog 15s infinite alternate ease-in-out;
+        }
+
+        .cloud-1 { width: 450px; height: 450px; background: #ff007f; top: -10%; left: -10%; animation-duration: 12s; }
+        .cloud-2 { width: 500px; height: 500px; background: #8b5cf6; bottom: -20%; right: -10%; animation-duration: 18s; }
+        .cloud-3 { width: 350px; height: 350px; background: #ec4899; top: 40%; left: 30%; animation-duration: 14s; }
+
+        @keyframes driftFog {
+            0% { transform: translateY(0px) translateX(0px) scale(1); }
+            100% { transform: translateY(-50px) translateX(40px) scale(1.15); }
         }
 
         /* Sticky Navbar */
@@ -62,11 +94,6 @@
             color: var(--pink-accent);
             text-shadow: 0 0 10px var(--pink-glow);
             text-transform: uppercase;
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 12px;
         }
 
         .nav-btn {
@@ -98,7 +125,6 @@
             gap: 24px;
         }
 
-        /* Top Pill Badge */
         .pill-badge {
             background: rgba(255, 0, 127, 0.1);
             border: 1px solid var(--pink-accent);
@@ -109,7 +135,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Hero Header */
         header {
             text-align: center;
         }
@@ -129,7 +154,6 @@
             font-size: 0.95rem;
         }
 
-        /* Action Grid (Script, Games, Discord only) */
         .action-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -160,7 +184,6 @@
             box-shadow: 0 0 15px var(--pink-glow);
         }
 
-        /* Uptime Counter Banner */
         .uptime-banner {
             width: 100%;
             background: var(--card-bg);
@@ -178,7 +201,6 @@
             color: var(--pink-accent);
         }
 
-        /* Script Section Card */
         .section-card {
             width: 100%;
             background: var(--card-bg);
@@ -243,7 +265,6 @@
             background: #e0006c;
         }
 
-        /* Feature Pills */
         .features-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -267,9 +288,9 @@
 
         /* Game Cards List */
         .game-list {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             width: 100%;
         }
 
@@ -277,33 +298,129 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            padding: 20px 16px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
             position: relative;
+            transition: all 0.2s ease;
         }
 
-        .status-badge {
-            position: absolute;
-            top: 14px;
-            left: 14px;
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid #22c55e;
-            color: #4ade80;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 4px 10px;
+        .game-card:hover {
+            border-color: var(--pink-accent);
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px var(--pink-glow);
+        }
+
+        .game-img {
+            width: 60px;
+            height: 60px;
             border-radius: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
+            object-fit: cover;
+            border: 1px solid var(--card-border);
         }
 
         .game-title {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 800;
-            margin-top: 18px;
+            text-align: center;
+        }
+
+        .status-badge {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Modal Popup Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 2, 10, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: #160b24;
+            border: 2px solid var(--pink-accent);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 0 30px var(--pink-glow);
+            transform: scale(0.85);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-img {
+            width: 90px;
+            height: 90px;
+            border-radius: 16px;
+            object-fit: cover;
+            border: 2px solid var(--pink-accent);
+            box-shadow: 0 0 15px var(--pink-glow);
+        }
+
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .modal-desc {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .modal-close-btn {
+            background: var(--pink-accent);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            box-shadow: 0 0 10px var(--pink-accent);
+            transition: background 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            background: #e0006c;
         }
 
         /* Discord Section */
@@ -348,6 +465,13 @@
 </head>
 <body>
 
+    <!-- Live Animated Background Fog -->
+    <div class="fog-container">
+        <div class="smoke-cloud cloud-1"></div>
+        <div class="smoke-cloud cloud-2"></div>
+        <div class="smoke-cloud cloud-3"></div>
+    </div>
+
     <!-- Sticky Top Navbar -->
     <nav>
         <div class="nav-logo"><i class="fa-solid fa-gem"></i> JENICAKES</div>
@@ -366,7 +490,7 @@
             <p>Welcome to Jenicakes. To get started, copy the execution loader below or check supported games.</p>
         </header>
 
-        <!-- Quick Action Grid (Script, Games, Discord) -->
+        <!-- Quick Action Grid -->
         <div class="action-grid">
             <a href="#loader-section" class="action-card"><i class="fa-solid fa-code"></i> Script</a>
             <a href="#games-section" class="action-card"><i class="fa-solid fa-gamepad"></i> Games</a>
@@ -399,28 +523,39 @@
         <!-- Supported Games Section -->
         <div style="width: 100%; text-align: center; margin-top: 10px;" id="games-section">
             <h2 style="font-size: 1.8rem; font-weight: 900; letter-spacing: 2px;">SUPPORTED GAMES</h2>
-            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">All supported games for you to enjoy</p>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Click any game for live status & details</p>
         </div>
 
+        <!-- Games Grid with Images -->
         <div class="game-list">
-            <div class="game-card">
+            <div class="game-card" onclick="openModal('Murder Mystery 2', 'https://tr.rbxcdn.com/186th/150/150/Image/Png', 'Fully supported with automated farming, esp, and sheriff/murderer finder.')">
                 <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-title">🥚 Break a Brainrot Egg</div>
+                <img src="https://tr.rbxcdn.com/186th/150/150/Image/Png" alt="MM2" class="game-img">
+                <div class="game-title">Murder Mystery 2</div>
             </div>
 
-            <div class="game-card">
+            <div class="game-card" onclick="openModal('Break a Brainrot Egg', 'https://tr.rbxcdn.com/180th/150/150/Image/Png', 'Automated hatching, instant egg opening, and fast coin farming enabled.')">
                 <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-title">🥚 Steal Anime Eggs</div>
+                <img src="https://tr.rbxcdn.com/180th/150/150/Image/Png" alt="Brainrot Egg" class="game-img">
+                <div class="game-title">Break a Brainrot Egg</div>
             </div>
 
-            <div class="game-card">
+            <div class="game-card" onclick="openModal('Steal Anime Eggs', 'https://tr.rbxcdn.com/150th/150/150/Image/Png', 'Auto-farm anime eggs, auto-collect rewards, and speed multiplier unlocked.')">
                 <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-title">🌱 +1 Cut Grass Adventure</div>
+                <img src="https://tr.rbxcdn.com/150th/150/150/Image/Png" alt="Anime Eggs" class="game-img">
+                <div class="game-title">Steal Anime Eggs</div>
             </div>
 
-            <div class="game-card">
+            <div class="game-card" onclick="openModal('+1 Cut Grass Adventure', 'https://tr.rbxcdn.com/120th/150/150/Image/Png', 'Auto cut grass, automatic rebirths, and pet auto-equip fully functional.')">
                 <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-title">💰 Steal From The Rich</div>
+                <img src="https://tr.rbxcdn.com/120th/150/150/Image/Png" alt="Cut Grass" class="game-img">
+                <div class="game-title">+1 Cut Grass Adventure</div>
+            </div>
+
+            <div class="game-card" onclick="openModal('Steal From The Rich', 'https://tr.rbxcdn.com/90th/150/150/Image/Png', 'Automated heist helper, instant interaction toggles, and safe-cracker active.')">
+                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                <img src="https://tr.rbxcdn.com/90th/150/150/Image/Png" alt="Steal From Rich" class="game-img">
+                <div class="game-title">Steal From The Rich</div>
             </div>
         </div>
 
@@ -433,6 +568,17 @@
         </div>
     </div>
 
+    <!-- Game Detail Popup Modal -->
+    <div class="modal-overlay" id="gameModal" onclick="closeModal(event)">
+        <div class="modal-card">
+            <img src="" alt="Game Image" class="modal-img" id="modalImg">
+            <div class="modal-title" id="modalTitle">Game Title</div>
+            <div class="status-badge"><i class="fa-solid fa-circle"></i> STATUS: ONLINE & WORKING</div>
+            <div class="modal-desc" id="modalDesc">Game description and features go here.</div>
+            <button class="modal-close-btn" onclick="closeModalDirect()">Got It</button>
+        </div>
+    </div>
+
     <script>
         function copyScript() {
             const text = document.getElementById("loadstring").innerText;
@@ -442,6 +588,23 @@
             setTimeout(() => {
                 btn.innerText = "Copy";
             }, 2000);
+        }
+
+        function openModal(title, imgUrl, desc) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalImg').src = imgUrl;
+            document.getElementById('modalDesc').innerText = desc;
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function closeModalDirect() {
+            document.getElementById('gameModal').classList.remove('active');
+        }
+
+        function closeModal(event) {
+            if (event.target.id === 'gameModal') {
+                document.getElementById('gameModal').classList.remove('active');
+            }
         }
     </script>
 </body>
