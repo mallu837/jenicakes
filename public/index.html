@@ -254,11 +254,11 @@
             gap: 6px;
         }
 
-        /* Game Cards List */
+        /* Game Cards Grid */
         .game-list {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 14px;
             width: 100%;
         }
 
@@ -266,11 +266,9 @@
             background: var(--card-bg);
             border: 1px solid var(--card-border);
             border-radius: 16px;
-            padding: 16px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 10px;
             cursor: pointer;
             position: relative;
             transition: all 0.2s ease;
@@ -282,23 +280,23 @@
             box-shadow: 0 0 15px var(--pink-glow);
         }
 
-        .game-icon-box {
-            width: 55px;
-            height: 55px;
-            border-radius: 14px;
-            background: rgba(255, 0, 127, 0.15);
-            border: 1px solid var(--pink-accent);
+        .game-card-img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .game-card-body {
+            padding: 12px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            box-shadow: 0 0 10px var(--pink-glow);
+            flex-direction: column;
+            gap: 6px;
         }
 
         .game-title {
             font-size: 0.9rem;
             font-weight: 800;
-            text-align: center;
         }
 
         .status-badge {
@@ -309,9 +307,10 @@
             font-weight: 800;
             padding: 2px 8px;
             border-radius: 10px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 4px;
+            width: fit-content;
         }
 
         /* Modal Popup Styles */
@@ -321,7 +320,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(5, 2, 10, 0.8);
+            background: rgba(5, 2, 10, 0.85);
             backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
@@ -342,12 +341,10 @@
             border: 2px solid var(--pink-accent);
             border-radius: 20px;
             width: 90%;
-            max-width: 400px;
-            padding: 24px;
+            max-width: 420px;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 16px;
             box-shadow: 0 0 30px var(--pink-glow);
             transform: scale(0.85);
             transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -357,21 +354,23 @@
             transform: scale(1);
         }
 
-        .modal-icon-box {
-            width: 75px;
-            height: 75px;
-            border-radius: 18px;
-            background: rgba(255, 0, 127, 0.15);
-            border: 2px solid var(--pink-accent);
+        .modal-banner-img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 2px solid var(--pink-accent);
+        }
+
+        .modal-content {
+            padding: 20px;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            font-size: 2.3rem;
-            box-shadow: 0 0 15px var(--pink-glow);
+            gap: 14px;
         }
 
         .modal-title {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 900;
             text-align: center;
         }
@@ -496,36 +495,46 @@
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">Click any game for live status & details</p>
         </div>
 
-        <!-- Games Grid -->
+        <!-- Games Grid with Thumbnails -->
         <div class="game-list">
-            <div class="game-card" onclick="openModal('Murder Mystery 2', '🔪', 'Fully supported with automated farming, ESP, and sheriff/murderer finder.')">
-                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-icon-box">🔪</div>
-                <div class="game-title">Murder Mystery 2</div>
+            <div class="game-card" onclick="openModal('Murder Mystery 2', 'mm2.jpg', 'Fully supported with automated coin farming, ESP, and Sheriff/Murderer finder.')">
+                <img src="mm2.jpg" alt="MM2" class="game-card-img">
+                <div class="game-card-body">
+                    <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                    <div class="game-title">Murder Mystery 2</div>
+                </div>
             </div>
 
-            <div class="game-card" onclick="openModal('Break a Brainrot Egg', '🥚', 'Automated hatching, instant egg opening, and fast coin farming enabled.')">
-                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-icon-box">🥚</div>
-                <div class="game-title">Break a Brainrot Egg</div>
+            <div class="game-card" onclick="openModal('Break a Brainrot Egg', 'brainrot.jpg', 'Automated hatching, instant egg opening, and fast coin farming enabled.')">
+                <img src="brainrot.jpg" alt="Brainrot Egg" class="game-card-img">
+                <div class="game-card-body">
+                    <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                    <div class="game-title">Break a Brainrot Egg</div>
+                </div>
             </div>
 
-            <div class="game-card" onclick="openModal('Steal Anime Eggs', '✨', 'Auto-farm anime eggs, auto-collect rewards, and speed multiplier unlocked.')">
-                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-icon-box">✨</div>
-                <div class="game-title">Steal Anime Eggs</div>
+            <div class="game-card" onclick="openModal('Steal Anime Eggs', 'anime.jpg', 'Auto-farm anime eggs, auto-collect rewards, and speed multiplier unlocked.')">
+                <img src="anime.jpg" alt="Anime Eggs" class="game-card-img">
+                <div class="game-card-body">
+                    <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                    <div class="game-title">Steal Anime Eggs</div>
+                </div>
             </div>
 
-            <div class="game-card" onclick="openModal('+1 Cut Grass Adventure', '🌱', 'Auto cut grass, automatic rebirths, and pet auto-equip fully functional.')">
-                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-icon-box">🌱</div>
-                <div class="game-title">+1 Cut Grass Adventure</div>
+            <div class="game-card" onclick="openModal('+1 Cut Grass Adventure', 'grass.jpg', 'Auto cut grass, automatic rebirths, and pet auto-equip fully functional.')">
+                <img src="grass.jpg" alt="Cut Grass" class="game-card-img">
+                <div class="game-card-body">
+                    <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                    <div class="game-title">+1 Cut Grass Adventure</div>
+                </div>
             </div>
 
-            <div class="game-card" onclick="openModal('Steal From The Rich', '💰', 'Automated heist helper, instant interaction toggles, and safe-cracker active.')">
-                <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
-                <div class="game-icon-box">💰</div>
-                <div class="game-title">Steal From The Rich</div>
+            <div class="game-card" onclick="openModal('Steal From The Rich!', 'rich.jpg', 'Automated heist helper, instant interaction toggles, and safe-cracker active.')">
+                <img src="rich.jpg" alt="Steal From Rich" class="game-card-img">
+                <div class="game-card-body">
+                    <div class="status-badge"><i class="fa-solid fa-circle"></i> ACTIVE</div>
+                    <div class="game-title">Steal From The Rich!</div>
+                </div>
             </div>
         </div>
 
@@ -541,11 +550,13 @@
     <!-- Game Detail Popup Modal -->
     <div class="modal-overlay" id="gameModal" onclick="closeModal(event)">
         <div class="modal-card">
-            <div class="modal-icon-box" id="modalIcon">🎮</div>
-            <div class="modal-title" id="modalTitle">Game Title</div>
-            <div class="status-badge"><i class="fa-solid fa-circle"></i> STATUS: ONLINE & WORKING</div>
-            <div class="modal-desc" id="modalDesc">Game description and features go here.</div>
-            <button class="modal-close-btn" onclick="closeModalDirect()">Got It</button>
+            <img src="" alt="Game Banner" class="modal-banner-img" id="modalImg">
+            <div class="modal-content">
+                <div class="modal-title" id="modalTitle">Game Title</div>
+                <div class="status-badge"><i class="fa-solid fa-circle"></i> STATUS: ONLINE & WORKING</div>
+                <div class="modal-desc" id="modalDesc">Game description and features go here.</div>
+                <button class="modal-close-btn" onclick="closeModalDirect()">Got It</button>
+            </div>
         </div>
     </div>
 
@@ -560,9 +571,9 @@
             }, 2000);
         }
 
-        function openModal(title, iconEmoji, desc) {
+        function openModal(title, imgUrl, desc) {
             document.getElementById('modalTitle').innerText = title;
-            document.getElementById('modalIcon').innerText = iconEmoji;
+            document.getElementById('modalImg').src = imgUrl;
             document.getElementById('modalDesc').innerText = desc;
             document.getElementById('gameModal').classList.add('active');
         }
