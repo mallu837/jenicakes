@@ -1,4 +1,3 @@
-
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -10,7 +9,8 @@ module.exports = async (req, res) => {
         "96727061242653": "stealanimeeggs.lua",
         "90086669327265": "+1cutgrassadventure.lua",
         "120475074479690": "stealfromtherich.lua",
-        "142823291": "mm2.lua"
+        "142823291": "mm2.lua",
+        "76731343328034": "LiftRockForEggs.lua" // <-- Added Lift Rock For Eggs
     };
 
     const fileName = files[placeId];
